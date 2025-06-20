@@ -14,15 +14,11 @@ SG_DB_NAME = 'GrupoSeguridadDB'
 SG_EC2_NAME = 'GrupoSeguridadDeMiEc2'
 DB_INSTANCE_IDENTIFIER = 'Maligno-DB'
 TAG_VALUE_NAME = 'Maligno-SRV'
-AMI_ID = 'ami-09e6f87a47903347c'  
+AMI_ID = 'ami-09e6f87a47903347c'
 INSTANCE_TYPE = 't2.micro'
 
 
 def get_or_create_security_group(ec2_client, group_name, description):
-    """
-    Obtiene un grupo de seguridad por nombre o lo crea si no existe.
-    Devuelve el GroupId.
-    """
     try:
         response = ec2_client.create_security_group(
             GroupName=group_name,
@@ -44,9 +40,6 @@ def get_or_create_security_group(ec2_client, group_name, description):
 
 
 def authorize_ingress_rule(ec2_client, group_id, ip_permissions):
-    """
-    Autoriza regla de ingreso, maneja el error de duplicado.
-    """
     try:
         ec2_client.authorize_security_group_ingress(
             GroupId=group_id,
@@ -110,7 +103,7 @@ def main():
 
     # Crear instancia RDS
     try:
-        response = rds.create_db_instance(
+        rds.create_db_instance(
             DBInstanceIdentifier=DB_INSTANCE_IDENTIFIER,
             AllocatedStorage=20,
             DBInstanceClass=DB_INSTANCE_CLASS,
@@ -133,35 +126,34 @@ def main():
     print(f"Instancia de Base de Datos disponible en: '{db_endpoint}'")
 
     # Script para user_data
-     user_data_script = f"""#!/bin/bash
-     # Actualizar y preparar entorno
-     sudo yum update -y
-     sudo yum install -y mariadb105-server-utils.x86_64 unzip
+    user_data_script = f"""#!/bin/bash
+sudo yum update -y
+sudo yum install -y mariadb105-server-utils.x86_64 unzip
 
-    # Instalar AWS CLI v2 si no está instalado
-    if ! command -v aws &> /dev/null
-    then
+# Instalar AWS CLI v2 si no está instalado
+if ! command -v aws &> /dev/null
+then
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
     unzip awscliv2.zip
     sudo ./aws/install
-    fi
+fi
 
-   # Variables
-   BUCKET_NAME="el-maligno-326616"
-   SQL_FILE="obli.sql"
-   DB_ENDPOINT="{db_endpoint}"
-   DB_USER="{USER_NAME}"
-   DB_PASSWORD="{DB_PASSWORD}"
+# Variables
+BUCKET_NAME="el-maligno-326616"
+SQL_FILE="obli.sql"
+DB_ENDPOINT="{db_endpoint}"
+DB_USER="{USER_NAME}"
+DB_PASSWORD="{DB_PASSWORD}"
 
-   # Descargar archivo SQL desde S3
-   aws s3 cp s3://$BUCKET_NAME/$SQL_FILE /home/ec2-user/$SQL_FILE
+# Descargar archivo SQL desde S3
+aws s3 cp s3://$BUCKET_NAME/$SQL_FILE /home/ec2-user/$SQL_FILE
 
-   # Esperar que mysql esté disponible
-   sleep 20
+# Esperar que mysql esté disponible
+sleep 20
 
-   # Ejecutar script SQL
-   mysql -h $DB_ENDPOINT -u $DB_USER -p$DB_PASSWORD < /home/ec2-user/$SQL_FILE
-   """
+# Ejecutar script SQL
+mysql -h $DB_ENDPOINT -u $DB_USER -p$DB_PASSWORD < /home/ec2-user/$SQL_FILE
+"""
 
     # Buscar si ya existe EC2 con el tag Name
     filters = [
@@ -169,17 +161,17 @@ def main():
         {"Name": "instance-state-name", "Values": ["pending", "running", "stopping", "stopped"]},
     ]
 
-   paginator = ec2.get_paginator("describe_instances")
-   existing_instance_ids = []
+    paginator = ec2.get_paginator("describe_instances")
+    existing_instance_ids = []
     for page in paginator.paginate(Filters=filters):
         for reservation in page["Reservations"]:
             for instance in reservation["Instances"]:
                 existing_instance_ids.append(instance["InstanceId"])
 
-   if existing_instance_ids:
+    if existing_instance_ids:
         print(f"Ya existe(n) instancia(s) con Name='{TAG_VALUE_NAME}': {', '.join(existing_instance_ids)}")
-   else:
-     try:
+    else:
+        try:
             response = ec2.run_instances(
                 ImageId=AMI_ID,
                 MinCount=1,
@@ -200,9 +192,10 @@ def main():
             waiter = ec2.get_waiter('instance_running')
             waiter.wait(InstanceIds=[instance_id])
             print("EC2 creada y corriendo, chuelmito queremos los puntitos")
-      except Exception as e:
+        except Exception as e:
             print(f"No se pudo crear la instancia con nombre: '{TAG_VALUE_NAME}'")
             print(e)
+
 
 if __name__ == '__main__':
     main()
