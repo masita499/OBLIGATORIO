@@ -4,18 +4,20 @@ import os
 import glob
 
 fecha = datetime.now()
-nombrelog = fecha.strftime("Log%d-%m-%Y")
+nombre_log = fecha.strftime("Log_%d-%m-%Y")
 
-s3_client = boto3.client('s3')
-bucket_name ="el-maligno-326616"
+s3_client = boto3.client('s3', region_name='us-east-1')
+#bucket_name = 'el-maligno-326616-322028'
+bucket_name = 'el-maligno-326616-32202-----8'
 
 try:
     s3_client.create_bucket(Bucket=bucket_name)
     print(f"Bucket '{bucket_name}' creado exitosamente")
+except s3_client.exceptions.BucketAlreadyOwnedByYou:
+    print(f"El bucket '{bucket_name}' ya existe")
 except Exception as e:
     print(f"Error al crear el bucket: {e}")
-
-# Subir archivo obli.sql después de crear el bucket
+    
 
 ruta_obli = os.path.expanduser("~/obli.sql")  # Cambiar ruta si está en otro lugar
 
@@ -32,7 +34,7 @@ directorio_home = os.path.expanduser("~")
 directorio_backup = os.path.join(directorio_home, "Backups")
 
 backups = sorted(
-    glob.glob(os.path.join(directorio_backup, "backupSetUID*.tar.gz")),
+    glob.glob(os.path.join(directorio_backup, "backupSetUID_*.tar.gz")),
     key=os.path.getmtime,
     reverse=True
 )
