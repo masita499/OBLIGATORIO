@@ -8,7 +8,7 @@ nombre_log = fecha.strftime("Log_%d-%m-%Y")
 
 s3_client = boto3.client('s3', region_name='us-east-1')
 #bucket_name = 'el-maligno-326616-322028'
-bucket_name = 'el-maligno-326616-32202-----8'
+bucket_name = 'el-maligno-326616-322028'
 
 try:
     s3_client.create_bucket(Bucket=bucket_name)
