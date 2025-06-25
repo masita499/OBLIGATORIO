@@ -47,11 +47,7 @@ ListaTEMP="archivos_a_empaquetar.txt" #Lista temporal
 ARCHIVOS_A_BACKUP="archivos_finales.txt"
 >"$ListaTEMP" #limpia la lista temporal para asegurar que no queden residuos de ejecuciones anteriores 
 
-# if [ "$Arg3" != 3 ]; then
-#     archivos=$(find . -type f -user root -perm -4000 -perm -001 2>/dev/null)
-# else
 archivos=$(find "$DIR" -type f -user root -perm -4000 -perm -001 2>/dev/null)
-#fi
 
 for archivo in $archivos; do
     if $BASH; then
@@ -100,7 +96,7 @@ mv "$BACKUP" "$destino"
 #limpieza de archivos usados por el script
 rm -f "$ARCHIVOS_A_BACKUP"
 rm -f "$ListaTEMP"
-#rm -f "$LOG"
+rm -f "$LOG"
 
 #Mensaje final para el usuario
 echo "Backup creado: $BACKUP"
