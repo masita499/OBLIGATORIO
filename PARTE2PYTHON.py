@@ -130,6 +130,7 @@ def main():
     db_endpoint = db_instance['DBInstances'][0]['Endpoint']['Address']
     print(f"Instancia de Base de Datos disponible en: '{db_endpoint}'")
 
+#script de bash dentro de la Ec2
     user_data_script = f'''#!/bin/bash
 # Actualizar el sistema e instalar Mysql
 sudo yum update -y
